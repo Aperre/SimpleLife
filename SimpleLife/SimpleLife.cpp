@@ -9,12 +9,12 @@
 #include "BS_thread_pool.hpp"
 #include <string>
 
+#define ATTRACTION_RADIUS 50.0f
 constexpr int WIDTH = 900;
 constexpr int HEIGHT = 900;
 constexpr float FRICTION = 99;
 constexpr int NUM_CIRCLES = 2500;
-constexpr float ATTRACTION_RADIUS = 50.0f;
-constexpr float ATTRACTION_FORCE = .001f;
+constexpr float ATTRACTION_FORCE = 0.05f/ATTRACTION_RADIUS;
 constexpr float RADIUS = 3.0f;
 constexpr double MASS = 1.0f;
 
@@ -53,11 +53,21 @@ float distance(float x1, float y1, float x2, float y2) {
 class Circle {
 private:
 	template <typename T>
-	void interactions(bool f1, T other, float interactionCoefficient) {
-		float d = distance(cx, cy, other.cx, other.cy);
+	void interactions(bool f1, T other, float interactionCoefficient, float d) {
 
 		if (!f1) return;
 
+		float fx = interactionCoefficient * ATTRACTION_FORCE * (other.cx - cx) / d;
+		float fy = interactionCoefficient * ATTRACTION_FORCE * (other.cy - cy) / d;
+
+		vx += fx;
+		vy += fy;
+	}
+	template <typename T>
+	void interactions(bool f1, T other, float interactionCoefficient) {
+
+		if (!f1) return;
+		float d = distance(cx, cy, other.cx, other.cy);
 		float fx = interactionCoefficient * ATTRACTION_FORCE * (other.cx - cx) / d;
 		float fy = interactionCoefficient * ATTRACTION_FORCE * (other.cy - cy) / d;
 
@@ -128,18 +138,17 @@ public:
 
 			if (d < ATTRACTION_RADIUS) {
 				
-				interactions(this->green == 1.0f, other, -1.0f);
-				interactions(other.green == 1.0f, other, -0.3f);
-				interactions(this->blue == 1.0f && other.red == 1.0f, other, -1.0f);
-				interactions(this->red == 1.0f && other.blue == 1.0f, other, 2.0f);
-				interactions(this->red == 1.0f && other.red == 1.0f, other, -0.5f);
-				interactions(this->blue == 1.0f && other.blue == 1.0f, other, 2.0f);
+				interactions(this->green == 1.0f, other, -1.0f,d);
+				interactions(other.green == 1.0f, other, -0.3f, d);
+				interactions(this->blue == 1.0f && other.red == 1.0f, other, -1.0f, d);
+				interactions(this->red == 1.0f && other.blue == 1.0f, other, 2.0f, d);
+				interactions(this->red == 1.0f && other.red == 1.0f, other, -0.5f, d);
+				interactions(this->blue == 1.0f && other.blue == 1.0f, other, 2.0f, d);
 				interactions(cursor->clickType, *cursor, cursor->clickType);
 
 
 				if (d < RADIUS + RADIUS) {
 					// Check circle collisions and response here
-					double d = sqrt(pow(cx - other.cx, 2) + pow(cy - other.cy, 2));
 					double overlap = RADIUS + RADIUS - d;
 
 					double nx = (other.cx - cx) / d;

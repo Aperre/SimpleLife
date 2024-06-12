@@ -135,6 +135,9 @@
   <ItemGroup>
     <ClInclude Include="BS_thread_pool.hpp" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Update.glsl" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
